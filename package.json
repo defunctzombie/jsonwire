@@ -10,5 +10,11 @@
     "dependencies": {
         "through": "2.2.7",
         "split": "0.2.1"
+    },
+    "devDependnecies": {
+        "tape": "0.3.1"
+    },
+    "scripts": {
+        "test": "tape test.js"
     }
 }
