@@ -20,6 +20,10 @@ function json(transport) {
 
   var out = transport.pipe(split()).pipe(output)
 
+  transport.on('error', function(err) {
+    input.emit('error', err);
+  });
+
   out.on('error', function(err) {
     input.emit('error', err);
   });

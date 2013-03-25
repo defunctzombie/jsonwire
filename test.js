@@ -56,7 +56,7 @@ test('multi', function(assert) {
     net.emit('data', '"bar"}\n');
 });
 
-test('error', function(assert) {
+test('parse error', function(assert) {
     assert.plan(1);
 
     var net = through(function(d) {
@@ -69,4 +69,19 @@ test('error', function(assert) {
     });
 
     net.emit('data', '{foo:"bar}\n');
+});
+
+test('net error', function(assert) {
+    assert.plan(1);
+
+    var net = through(function(d) {
+        this.queue(d);
+    });
+
+    var wire = jsonwire(net);
+    wire.on('error', function(err) {
+        assert.equal(err.message, 'foobar');
+    });
+
+    net.emit('error', new Error('foobar'));
 });
