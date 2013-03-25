@@ -1,0 +1,14 @@
+{
+    "name": "jsonwire",
+    "version": "0.0.0",
+    "author": "Roman Shtylman <shtylman@gmail.com>",
+    "description": "newline delimited json read/write stream",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/shtylman/jsonwire.git"
+    },
+    "dependencies": {
+        "through": "2.2.7",
+        "split": "0.2.1"
+    }
+}
