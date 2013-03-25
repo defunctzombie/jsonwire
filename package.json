@@ -9,9 +9,10 @@
     },
     "dependencies": {
         "through": "2.2.7",
-        "split": "0.2.1"
+        "split": "0.2.1",
+        "duplexer": "0.0.3"
     },
-    "devDependnecies": {
+    "devDependencies": {
         "tape": "0.3.1"
     },
     "scripts": {

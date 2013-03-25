@@ -1,36 +1,32 @@
 var test = require('tape');
 var through = require('through');
 
-var jsonwire = require('./index');
+var serialize = require('./index');
 var json = JSON.stringify;
 
 test('simple', function(assert) {
     assert.plan(1);
 
-    var net = through(function(d) {
-        this.queue(d);
-    });
+    var net = through();
 
-    var wire = jsonwire(net);
-    wire.once('data', function(d) {
+    var app = through(function(d) {
         assert.deepEqual(d, {foo: 'bar'});
     });
 
-    // pretend the transport got some data
+    net.pipe(serialize(app)).pipe(net);
     net.emit('data', json({foo: 'bar'}) + '\n');
 });
 
 test('partial', function(assert) {
     assert.plan(1);
 
-    var net = through(function(d) {
-        this.queue(d);
-    });
+    var net = through();
 
-    var wire = jsonwire(net);
-    wire.once('data', function(d) {
+    var app = through(function(d) {
         assert.deepEqual(d, {foo: 'bar'});
     });
+
+    net.pipe(serialize(app)).pipe(net);
 
     net.emit('data', '{');
     net.emit('data', '"foo":');
@@ -42,14 +38,13 @@ test('partial', function(assert) {
 test('multi', function(assert) {
     assert.plan(2);
 
-    var net = through(function(d) {
-        this.queue(d);
-    });
+    var net = through();
 
-    var wire = jsonwire(net);
-    wire.on('data', function(d) {
+    var app = through(function(d) {
         assert.deepEqual(d, {foo: 'bar'});
     });
+
+    net.pipe(serialize(app)).pipe(net);
 
     net.emit('data', '{"foo":"bar"}\n');
     net.emit('data', '{"foo":');
@@ -59,29 +54,40 @@ test('multi', function(assert) {
 test('parse error', function(assert) {
     assert.plan(1);
 
-    var net = through(function(d) {
-        this.queue(d);
+    var net = through();
+
+    var app = through(function(d) {
+        assert.deepEqual(d, {foo: 'bar'});
     });
 
-    var wire = jsonwire(net);
-    wire.on('error', function(err) {
+    var ss;
+    net.pipe(ss = serialize(app)).pipe(net);
+
+    // will disconnect the pipe
+    // you are responsible for reconnecting
+    ss.on('error', function(err) {
         assert.equal(err.message, 'Unexpected token f');
     });
 
     net.emit('data', '{foo:"bar}\n');
+    net.emit('data', '{"foo":"bar"}\n');
 });
 
+// no more parsing after original stream emits error
 test('net error', function(assert) {
-    assert.plan(1);
+    assert.plan(2);
 
-    var net = through(function(d) {
-        this.queue(d);
+    var net = through();
+    var app = through(function() {
+        assert.ok(false);
     });
 
-    var wire = jsonwire(net);
-    wire.on('error', function(err) {
-        assert.equal(err.message, 'foobar');
+    net.pipe(serialize(app)).pipe(net);
+
+    net.on('error', function(err) {
+        assert.equals(err.message, 'foobar');
     });
 
     net.emit('error', new Error('foobar'));
+    net.emit('data', '{"foo":"bar"}\n');
 });
